@@ -23,3 +23,79 @@ pip install -r requirements.txt
 python sitadel.py --help
 Atau jika ingin pakai Python sistem langsung: pip install --break-system-packages -r requirements.txt
 Saya sudah verifikasi di environment lokal: --help tampil sempurna tanpa warning, banner ASCII art tampil utuh, dan crawler tetap berfungsi normal setelah scrapy terinstall.
+
+1. Persiapan & Instalasi (Kali Linux)
+cd /home/kali/sitadel
+
+# Buat virtual environment (direkomendasikan di Kali)
+python3 -m venv venv
+source venv/bin/activate
+
+# Install semua dependency
+pip install -r requirements.txt
+⚠️ URL target wajib menyertakan protokol (http:// atau https://) — contoh: http://target.com, bukan target.com. Tanpa protokol, program akan keluar dengan pesan "Url not valid".
+2. Menjalankan Scan Dasar
+Cara paling sederhana — cukup berikan URL:
+python sitadel.py http://target-site.com
+Urutan proses scan secara otomatis:
+1. Fingerprinting — identifikasi teknologi (CMS, server, framework, WAF, dll.)
+2. Crawling — menjelajahi situs untuk mengumpulkan daftar URL
+3. Attacks — menjalankan modul serangan pada URL yang ditemukan
+3. Opsi Command-Line
+Opsi	Fungsi
+url	Target scan (wajib, dengan http:// atau https://)
+-r, --risk {0,1,2}	Tingkat risiko serangan yang diizinkan
+-ua, --user-agent	Custom User-Agent (default: Sitadel 0.1.0)
+--redirect / --no-redirect	Ikuti / jangan ikuti redirect (default: ikuti)
+-t, --timeout	Timeout HTTP dalam detik (default: 30)
+-c, --cookie	Set cookie untuk autentikasi (mis. hasil login)
+-p, --proxy	Set proxy (mis. http://127.0.0.1:8080 untuk Burp)
+-f, --fingerprint	Pilih hanya modul fingerprint tertentu
+-a, --attack	Pilih hanya modul attack tertentu
+--config	Path file konfigurasi (default: config/config.yml)
+-v, -vv	Tingkatkan verbosity output
+--version	Tampilkan versi
+Memahami Tingkat Risiko (-r)
+Nilai	Nama	Arti
+0	NO_DANGER	Aman — hampir tak terdeteksi
+1	NOISY	Banyak request & pola yang bisa terdeteksi (default)
+2	DANGEROUS	Tahap eksploitasi — berpotensi merusak target!
+4. Contoh Skenario Praktis
+A. Fingerprint saja (aman, tanpa serangan):
+python sitadel.py http://target.com -f cms server waf
+B. Scan dengan proxy Burp Suite:
+python sitadel.py http://target.com -p http://127.0.0.1:8080
+C. Scan target yang butuh login (dengan cookie sesi):
+python sitadel.py http://target.com -c "PHPSESSID=abc123xyz"
+D. Hanya modul serangan tertentu + user-agent palsu:
+python sitadel.py http://target.com -a injection -ua "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+E. Scan penuh termasuk serangan berbahaya (hanya di lab sendiri!):
+python sitadel.py http://target.com -r 2
+5. Modul yang Tersedia
+Fingerprint (opsi -f):
+cms system framework frontend header lang server waf cdn
+Contoh deteksi: WordPress, Drupal, Laravel, Django, Nginx, Cloudflare WAF, jQuery, React, dll.
+Attack (opsi -a):
+Modul	Isi
+bruteforce	File & direktori admin/backdoor/log
+injection	SQL, XSS, LDAP, RFI, XPath, PHP injection
+vulns	Listing direktori, DAV, phpinfo, robots.txt, XST
+other	Shellshock, StrutsShock, anonymous FTP
+6. Kustomisasi via config/config.yml
+risk: 1                      # tingkat risiko default
+dns_resolver: 8.8.8.8        # DNS untuk verifikasi CDN
+datastore: lib/data          # lokasi wordlist plugin
+fingerprint_plugins:         # modul fingerprint aktif
+    - cms
+    - server
+    - waf
+attack_plugins:              # modul attack aktif
+    - bruteforce
+    - injection
+Menggunakan config kustom: python sitadel.py http://target.com --config config/config.yml
+⚖️ Peringatan Etis & Legal
+Sitadel adalah alat pengujian keamanan. Gunakan hanya untuk:
+- ✅ Aset milik sendiri
+- ✅ Lingkungan lab (DVWA, Metasploitable, dll.)
+- ✅ Target dengan izin tertulis (pentest engagement / bug bounty)
+Melakukan scan tanpa izin ke situs pihak lain ilegal di banyak negara (termasuk UU ITE di Indonesia) dan dapat berujung sanksi pidana. Selalu dapatkan otorisasi sebelum memindai target yang bukan milik Anda.
