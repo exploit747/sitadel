@@ -1,0 +1,25 @@
+Semua perbaikan selesai dan sudah teruji. Berikut ringkasannya:
+Masalah & Perbaikan
+Ada 2 akar masalah pada error Anda:
+1. SyntaxWarning: invalid escape sequence '\_' — di lib/utils/banner.py, ASCII art banner menggunakan \_ di string biasa, yang bukan escape sequence valid Python. Saya ubah string tersebut menjadi raw string (r"...").
+2. ModuleNotFoundError: No module named 'scrapy' — ada dua lapis masalahnya:
+- scrapy memang belum terinstall di sistem Anda
+- lib/utils/manager.py meng-import crawler di level atas (from lib.modules.crawler.crawler import crawl), sehingga seluruh program crash — bahkan --help pun gagal, padahal --help tidak butuh scrapy
+Saya ubah menjadi lazy import di dalam fungsi crawler(): sekarang --help, --version, dan fase fingerprinting bisa berjalan tanpa scrapy, dan jika scrapy belum terinstall saat scan butuh crawler, muncul pesan yang jelas alih-alih traceback panjang:
+[!] Scrapy is not installed: the crawler module is required to discover URLs before running the attacks.
+    Fix: pip install scrapy   (or: pip install -r requirements.txt)
+3. Bonus: requirements.txt — file ini belum ada di proyek, jadi saya buat berisi semua dependency runtime (requests, urllib3, pyyaml, colorama, scrapy, dnspython — modul CDN fingerprint juga membutuhkan dnspython).
+File yang diubah
+- lib/utils/banner.py — perbaikan raw string
+- lib/utils/manager.py — lazy import + pesan error ramah
+- requirements.txt — baru
+Yang perlu Anda lakukan di Kali
+1. Salin ketiga file di atas ke /home/kali/sitadel
+2. Install dependency-nya. Di Kali terbaru, pip sistem biasanya memblokir instalasi langsung (PEP 668), jadi cara paling aman pakai virtual environment:
+cd /home/kali/sitadel
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python sitadel.py --help
+Atau jika ingin pakai Python sistem langsung: pip install --break-system-packages -r requirements.txt
+Saya sudah verifikasi di environment lokal: --help tampil sempurna tanpa warning, banner ASCII art tampil utuh, dan crawler tetap berfungsi normal setelah scrapy terinstall.
