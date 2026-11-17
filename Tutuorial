@@ -99,3 +99,10 @@ Sitadel adalah alat pengujian keamanan. Gunakan hanya untuk:
 - ✅ Lingkungan lab (DVWA, Metasploitable, dll.)
 - ✅ Target dengan izin tertulis (pentest engagement / bug bounty)
 Melakukan scan tanpa izin ke situs pihak lain ilegal di banyak negara (termasuk UU ITE di Indonesia) dan dapat berujung sanksi pidana. Selalu dapatkan otorisasi sebelum memindai target yang bukan milik Anda.
+
+Run it like this
+cd ~/sitadel
+.venv/bin/python sitadel.py http://example.com
+Or activate once per shell:
+source .venv/bin/activate
+python sitadel.py http://example.com
